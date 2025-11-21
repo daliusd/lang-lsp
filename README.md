@@ -40,16 +40,22 @@ npm install -g @daliusd/lang-lsp
 Add to your Neovim config (Lua):
 
 ```lua
+-- lang-lsp for translation hints
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
   callback = function()
     vim.lsp.start({
       name = 'lang-lsp',
       cmd = { 'lang-lsp', '--stdio' },
-      root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', '.git' }, { upward = true })[1]),
+      root_dir = vim.fs.root(0, { 'package.json', '.git' }),
     })
   end,
 })
+```
+
+**Note**: Requires Neovim 0.10+ for `vim.fs.root()`. For older versions, use:
+```lua
+root_dir = vim.fs.dirname(vim.fs.find({ 'package.json', '.git' }, { upward = true })[1])
 ```
 
 ### VS Code
