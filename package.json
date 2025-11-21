@@ -1,0 +1,42 @@
+{
+  "name": "@daliusd/lang-lsp",
+  "version": "0.1.0",
+  "description": "Language Server Protocol server for language string collection",
+  "main": "dist/server.js",
+  "bin": {
+    "lang-lsp": "./bin/lang-lsp"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "watch": "tsc -b --watch",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daliusd/lang-lsp.git"
+  },
+  "author": "Dalius Dobravolskas",
+  "license": "ISC",
+  "keywords": [
+    "lsp",
+    "language-server",
+    "i18n",
+    "localization"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "nanolru": "^1.0.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "LICENSE",
+    "README.md"
+  ]
+}
