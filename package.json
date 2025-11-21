@@ -17,6 +17,9 @@
   },
   "author": "Dalius Dobravolskas",
   "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "lsp",
     "language-server",
