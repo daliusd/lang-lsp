@@ -50,7 +50,7 @@ connection.onInitialize((params: InitializeParams) => {
   const result: InitializeResult = {
     serverInfo: {
       name: 'lang-lsp',
-      version: '0.1.0',
+      version: '0.2.0',
     },
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,

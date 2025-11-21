@@ -1,6 +1,6 @@
 {
   "name": "@daliusd/lang-lsp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Language Server Protocol server for language string collection",
   "main": "dist/server.js",
   "bin": {
