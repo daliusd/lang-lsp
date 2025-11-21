@@ -47,8 +47,6 @@ connection.onInitialize((params: InitializeParams) => {
   const rootPath = params.rootPath || params.rootUri?.replace('file://', '') || process.cwd();
   languageService = new LanguageService(rootPath);
 
-  connection.console.log(`Language server initialized with root path: ${rootPath}`);
-
   const result: InitializeResult = {
     serverInfo: {
       name: 'lang-lsp',
@@ -74,11 +72,6 @@ connection.onInitialize((params: InitializeParams) => {
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
     connection.client.register(DidChangeConfigurationNotification.type, undefined);
-  }
-  if (hasWorkspaceFolderCapability) {
-    connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-      connection.console.log('Workspace folder change event received.');
-    });
   }
 });
 
@@ -113,6 +106,9 @@ function getDocumentSettings(resource: string): Thenable<LangLspSettings> {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
       section: 'langLsp',
+    }).then((settings) => {
+      // Merge with defaults to handle empty/partial settings
+      return { ...defaultSettings, ...settings };
     });
     documentSettings.set(resource, result);
   }
@@ -123,6 +119,10 @@ documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
 });
 
+documents.onDidOpen((e) => {
+  validateTextDocument(e.document);
+});
+
 documents.onDidChangeContent((change) => {
   validateTextDocument(change.document);
 });
@@ -130,7 +130,7 @@ documents.onDidChangeContent((change) => {
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   const settings = await getDocumentSettings(textDocument.uri);
 
-  if (!settings.enableDiagnostics || !languageService) {
+  if (!settings || !settings.enableDiagnostics || !languageService) {
     return;
   }
 
