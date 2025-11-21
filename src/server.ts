@@ -44,13 +44,14 @@ connection.onInitialize((params: InitializeParams) => {
   );
 
   // Get workspace root path
-  const rootPath = params.rootPath || params.rootUri?.replace('file://', '') || process.cwd();
+  const rootPath =
+    params.rootPath || params.rootUri?.replace('file://', '') || process.cwd();
   languageService = new LanguageService(rootPath);
 
   const result: InitializeResult = {
     serverInfo: {
       name: 'lang-lsp',
-      version: '0.2.0',
+      version: '0.3.0',
     },
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -71,7 +72,10 @@ connection.onInitialize((params: InitializeParams) => {
 
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
-    connection.client.register(DidChangeConfigurationNotification.type, undefined);
+    connection.client.register(
+      DidChangeConfigurationNotification.type,
+      undefined,
+    );
   }
 });
 
@@ -103,13 +107,15 @@ function getDocumentSettings(resource: string): Thenable<LangLspSettings> {
   }
   let result = documentSettings.get(resource);
   if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'langLsp',
-    }).then((settings) => {
-      // Merge with defaults to handle empty/partial settings
-      return { ...defaultSettings, ...settings };
-    });
+    result = connection.workspace
+      .getConfiguration({
+        scopeUri: resource,
+        section: 'langLsp',
+      })
+      .then((settings) => {
+        // Merge with defaults to handle empty/partial settings
+        return { ...defaultSettings, ...settings };
+      });
     documentSettings.set(resource, result);
   }
   return result;
@@ -144,7 +150,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         start: { line: match.line, character: match.startCol },
         end: { line: match.line, character: match.endCol },
       },
-      message: `en: ${match.translation}`,
+      message: `[${match.namespace}] en: ${match.translation}`,
       source: 'lang-lsp',
     };
   });
@@ -163,20 +169,20 @@ connection.onHover(async (params): Promise<Hover | null> => {
   }
 
   const text = document.getText();
-  const translation = await languageService.getTranslation(
+  const result = await languageService.getTranslation(
     text,
     params.position.line,
-    params.position.character
+    params.position.character,
   );
 
-  if (!translation) {
+  if (!result) {
     return null;
   }
 
   return {
     contents: {
       kind: MarkupKind.Markdown,
-      value: `**Translation (en):**\n\n${translation}`,
+      value: `**Translation (en, ${result.namespace}):**\n\n${result.translation}`,
     },
   };
 });

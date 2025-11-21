@@ -6,6 +6,7 @@ import LRU from 'nanolru';
 interface MessageContent {
   mtime: number;
   messages: Record<string, string>;
+  namespace: string;
 }
 
 interface LanguageMatch {
@@ -14,6 +15,7 @@ interface LanguageMatch {
   endCol: number;
   key: string;
   translation: string;
+  namespace: string;
 }
 
 const readFile = promisify(fs.readFile);
@@ -41,10 +43,11 @@ export class LanguageService {
     let msgPaths = messageEnFiles.get(this.rootPath);
     if (!msgPaths) {
       try {
-        const result = await exec(`fd messages_en.json ${this.rootPath}`);
-        msgPaths = result.stdout
-          .split('\n')
-          .filter((fn) => fn.length > 0);
+        // Search for both old pattern (messages_en.json) and new pattern (*_en.json)
+        const result = await exec(
+          `fd -e json -p '_en\\.json$' ${this.rootPath}`,
+        );
+        msgPaths = result.stdout.split('\n').filter((fn) => fn.length > 0);
         messageEnFiles.set(this.rootPath, msgPaths);
       } catch (error) {
         // fd command might not be available or no files found
@@ -55,20 +58,32 @@ export class LanguageService {
     return msgPaths;
   }
 
-  async getMessages(msgPaths: string[]): Promise<Record<string, string>[]> {
-    const messagesList: Record<string, string>[] = [];
+  extractNamespaceFromPath(path: string): string {
+    // Extract namespace from pattern: .../locales/invoice_en.json -> "invoice"
+    // or .../messages_en.json -> "messages"
+    const match = path.match(/([^/]+)_en\.json$/);
+    if (match) {
+      return match[1];
+    }
+    return 'common';
+  }
+
+  async getMessages(msgPaths: string[]): Promise<MessageContent[]> {
+    const messagesList: MessageContent[] = [];
     for (const msgFileName of msgPaths) {
       try {
         const mtime = (await stat(msgFileName)).mtimeMs;
         const info = messagesContent.get(msgFileName);
 
         if (info && info.mtime === mtime) {
-          messagesList.push(info.messages);
+          messagesList.push(info);
         } else {
           const content = await readFile(msgFileName, { encoding: 'utf8' });
           const messages = JSON.parse(content) as Record<string, string>;
-          messagesList.push(messages);
-          messagesContent.set(msgFileName, { mtime, messages });
+          const namespace = this.extractNamespaceFromPath(msgFileName);
+          const messageContent = { mtime, messages, namespace };
+          messagesList.push(messageContent);
+          messagesContent.set(msgFileName, messageContent);
         }
       } catch (error) {
         // Skip files that can't be read or parsed
@@ -93,14 +108,15 @@ export class LanguageService {
         const key = m[1];
 
         if (m.index !== undefined && key.length > 0) {
-          for (const messages of messagesList) {
-            if (messages[key]) {
+          for (const messageContent of messagesList) {
+            if (messageContent.messages[key]) {
               matches.push({
                 line: lineNo,
                 startCol: m.index + 1, // +1 to skip opening quote
                 endCol: m.index + key.length + 1,
                 key,
-                translation: messages[key],
+                translation: messageContent.messages[key],
+                namespace: messageContent.namespace,
               });
               break; // Only add the first match for each key
             }
@@ -112,7 +128,11 @@ export class LanguageService {
     return matches;
   }
 
-  async getTranslation(text: string, line: number, character: number): Promise<string | null> {
+  async getTranslation(
+    text: string,
+    line: number,
+    character: number,
+  ): Promise<{ translation: string; namespace: string } | null> {
     const msgPaths = await this.getMsgPaths();
 
     if (!msgPaths || msgPaths.length === 0) {
@@ -121,26 +141,29 @@ export class LanguageService {
 
     const messagesList = await this.getMessages(msgPaths);
     const lines = text.split('\n');
-    
+
     if (line >= lines.length) {
       return null;
     }
 
     const currentLine = lines[line];
-    
+
     // Find all matches in the current line
     for (const m of currentLine.matchAll(/["']([\w\.\-]*)["']/g)) {
       const key = m[1];
-      
+
       if (m.index !== undefined) {
         const startCol = m.index + 1; // +1 to skip opening quote
         const endCol = m.index + key.length + 1;
-        
+
         // Check if cursor is within the key (not on the quotes)
         if (character >= startCol && character <= endCol) {
-          for (const messages of messagesList) {
-            if (messages[key]) {
-              return messages[key];
+          for (const messageContent of messagesList) {
+            if (messageContent.messages[key]) {
+              return {
+                translation: messageContent.messages[key],
+                namespace: messageContent.namespace,
+              };
             }
           }
         }
