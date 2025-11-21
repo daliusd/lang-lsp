@@ -117,6 +117,84 @@ npm run build
 npm run watch
 ```
 
+## Testing
+
+The project includes a test directory with sample files to verify LSP functionality:
+
+### Test Files Location
+
+```
+test/
+├── package.json                    # Root marker for LSP
+├── fixtures/
+│   ├── locales/
+│   │   └── messages_en.json       # Sample translations
+│   ├── sample.ts                   # TypeScript test file
+│   ├── sample.js                   # JavaScript test file
+│   └── sample.tsx                  # React/TSX test file
+```
+
+### How to Test
+
+1. **Link the package for local testing**:
+   ```bash
+   npm link
+   ```
+
+2. **Open test files in your editor**:
+   ```bash
+   # Using Neovim
+   nvim test/fixtures/sample.ts
+   
+   # Using VS Code
+   code test/fixtures/sample.ts
+   ```
+
+3. **Verify LSP is working**:
+   - **Hover test**: Move your cursor over any language key (e.g., `"user.welcome"`) and hover
+   - Expected: A popup showing `Translation (en): Welcome to our application!`
+   - **Diagnostics test**: Look for info-level inline messages next to language keys
+   - **Check LSP status**: 
+     - Neovim: `:LspInfo`
+     - VS Code: Check status bar for LSP connection
+
+4. **Test different scenarios**:
+   - `test/fixtures/sample.ts` - TypeScript with various key patterns
+   - `test/fixtures/sample.js` - JavaScript examples
+   - `test/fixtures/sample.tsx` - React component examples
+
+### Debugging
+
+If the LSP server isn't working:
+
+1. **Check server is running**:
+   ```bash
+   ps aux | grep lang-lsp
+   ```
+
+2. **View LSP logs** (Neovim):
+   ```vim
+   :lua vim.cmd('e ' .. vim.lsp.get_log_path())
+   ```
+
+3. **Verify `fd` is installed**:
+   ```bash
+   fd --version
+   ```
+
+4. **Check messages_en.json is found**:
+   ```bash
+   cd test && fd messages_en.json
+   ```
+
+### Expected Behavior
+
+When hovering over these keys in test files, you should see:
+- `"user.welcome"` → "Welcome to our application!"
+- `"error.not-found"` → "The requested resource was not found"
+- `"button.save"` → "Save"
+- `"message.success"` → "Operation completed successfully"
+
 ## License
 
 ISC

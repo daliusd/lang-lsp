@@ -50,6 +50,10 @@ connection.onInitialize((params: InitializeParams) => {
   connection.console.log(`Language server initialized with root path: ${rootPath}`);
 
   const result: InitializeResult = {
+    serverInfo: {
+      name: 'lang-lsp',
+      version: '0.1.0',
+    },
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       hoverProvider: true,

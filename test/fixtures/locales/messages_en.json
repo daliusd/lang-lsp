@@ -1,0 +1,16 @@
+{
+  "user.welcome": "Welcome to our application!",
+  "user.goodbye": "Goodbye, see you soon!",
+  "user.login": "Please log in to continue",
+  "user.logout": "You have been logged out",
+  "error.not-found": "The requested resource was not found",
+  "error.unauthorized": "You are not authorized to access this resource",
+  "error.server": "An internal server error occurred",
+  "button.save": "Save",
+  "button.cancel": "Cancel",
+  "button.submit": "Submit",
+  "button.delete": "Delete",
+  "message.success": "Operation completed successfully",
+  "message.warning": "Please review your input",
+  "message.info": "Additional information is available"
+}

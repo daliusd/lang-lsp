@@ -1,3 +1,8 @@
 #!/usr/bin/env node
 
+// Ensure --stdio is set if no flags are provided
+if (!process.argv.includes('--stdio') && !process.argv.includes('--node-ipc') && !process.argv.includes('--socket')) {
+  process.argv.push('--stdio');
+}
+
 require('../dist/server.js');

@@ -1,0 +1,6 @@
+{
+  "name": "lang-lsp-test",
+  "version": "1.0.0",
+  "description": "Test project for lang-lsp server",
+  "private": true
+}

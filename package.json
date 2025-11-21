@@ -9,7 +9,9 @@
   "scripts": {
     "build": "tsc -b",
     "watch": "tsc -b --watch",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "test": "echo 'Open test files in your editor to test LSP functionality. See README for details.' && exit 0",
+    "test:open": "echo 'Opening test files...' && cd test && (nvim fixtures/sample.ts || code fixtures/sample.ts || echo 'Please open test/fixtures/*.ts files in your editor')"
   },
   "repository": {
     "type": "git",
